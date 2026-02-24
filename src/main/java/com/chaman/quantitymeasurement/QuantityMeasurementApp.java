@@ -31,5 +31,23 @@ public class QuantityMeasurementApp {
         } else {
             System.out.println("Output: Not Equal (false)");
         }
+
+        Quantity yard1 = new Quantity(1.0, LengthUnit.YARD);
+        Quantity feet4 = new Quantity(3.0, LengthUnit.FEET);
+        System.out.println("Input: Quantity(1.0, YARDS) and Quantity(3.0, FEET)");
+        if (yard1.equals(feet4)) {
+            System.out.println("Output: Equal (true)");
+        } else {
+            System.out.println("Output: Not Equal (false)");
+        }
+
+        Quantity cm1 = new Quantity(1.0, LengthUnit.CENTIMETER);
+        Quantity inch4 = new Quantity(0.393701, LengthUnit.INCH);
+        System.out.println("Input: Quantity(1.0, CENTIMETERS) and Quantity(0.393701, INCHES)");
+        if (cm1.equals(inch4)) {
+            System.out.println("Output: Equal (true)");
+        } else {
+            System.out.println("Output: Not Equal (false)");
+        }
     }
 }

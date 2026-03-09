@@ -59,7 +59,7 @@ public class Length {
 	
 	@Override
 	public String toString() {
-		return value+" "+unit;
+		return Math.round(value*100.0)/100.0+" "+unit;
 	}
 	
 	public double convertTo(LengthUnit targetUnit) {
@@ -72,5 +72,12 @@ public class Length {
 		if(other==null) throw new IllegalArgumentException("Length cant be null");
 		double result=(this.convertToBaseUnit()+other.convertToBaseUnit())/this.unit.getConversionFactor();
 		return new Length(result,this.unit);
+	}
+	
+	public Length add(Length other, LengthUnit unit) {
+		if(other==null) throw new IllegalArgumentException("Length cant be null");
+		if(unit==null) throw new IllegalArgumentException("Unit can't be null");
+		double result=(this.convertToBaseUnit()+other.convertToBaseUnit())/unit.getConversionFactor();
+		return new Length(result,unit);
 	}
 }

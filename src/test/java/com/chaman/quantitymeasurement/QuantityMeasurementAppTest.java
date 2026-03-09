@@ -215,11 +215,71 @@ class QuantityMeasurementAppTest {
         assertEquals(u1, result.getUnit());
     }
     
+    @ParameterizedTest
+    @CsvSource({
+        // same unit operations
+        "1.0, FEET, 1.0, FEET, FEET, 2.0",
+        "12.0, INCHES, 12.0, INCHES, INCHES, 24.0",
+        "1.0, YARDS, 1.0, YARDS, YARDS, 2.0",
+        "2.54, CENTIMETERS, 2.54, CENTIMETERS, CENTIMETERS, 5.08",
+
+        // FEET + INCHES
+        "1.0, FEET, 12.0, INCHES, FEET, 2.0",
+        "1.0, FEET, 12.0, INCHES, INCHES, 24.0",
+        "1.0, FEET, 12.0, INCHES, YARDS, 0.666667",
+
+        // YARDS + FEET
+        "1.0, YARDS, 3.0, FEET, YARDS, 2.0",
+        "1.0, YARDS, 3.0, FEET, FEET, 6.0",
+        "1.0, YARDS, 3.0, FEET, INCHES, 72.0",
+
+        // INCHES + YARDS
+        "36.0, INCHES, 1.0, YARDS, FEET, 6.0",
+        "36.0, INCHES, 1.0, YARDS, YARDS, 2.0",
+
+        // CENTIMETERS + INCHES
+        "2.54, CENTIMETERS, 1.0, INCHES, CENTIMETERS, 5.08",
+        "2.54, CENTIMETERS, 1.0, INCHES, INCHES, 2.0",
+
+        // zero value
+        "5.0, FEET, 0.0, INCHES, YARDS, 1.666667",
+
+        // negative values
+        "5.0, FEET, -2.0, FEET, INCHES, 36.0",
+
+        // large scale conversion
+        "1000.0, FEET, 500.0, FEET, INCHES, 18000.0",
+
+        // small scale conversion
+        "12.0, INCHES, 12.0, INCHES, YARDS, 0.666667"
+    })
+    void testTargetAdd(double v1, Length.LengthUnit u1,
+    				   double v2, Length.LengthUnit u2,
+    				   Length.LengthUnit target, double expectedValue) {
+    	
+    	Length l1=new Length(v1,u1);
+    	Length l2=new Length(v2,u2);
+    	
+    	Length result=l1.add(l2,target);
+    	
+    	assertEquals(expectedValue,result.getValue(),EPSILON);
+    	assertEquals(target,result.getUnit());
+    	
+    }
+    
     @Test
     void testAdd_NullLength() {
         Length l1 = new Length(1.0, Length.LengthUnit.FEET);
 
         assertThrows(IllegalArgumentException.class,
                 () -> l1.add(null));
+    }
+    
+    @Test
+    void testTargetAdd_NullLength() {
+        Length l1 = new Length(1.0, Length.LengthUnit.FEET);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> l1.add(null,null));
     }
 }

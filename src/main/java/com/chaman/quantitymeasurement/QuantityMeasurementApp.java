@@ -14,7 +14,7 @@ public class QuantityMeasurementApp {
 		return l1.equals(l2);
 	}
 	
-	public static double convert(double value,Length.LengthUnit sourceUnit, Length.LengthUnit targetUnit) {
+	public static double convert(double value,LengthUnit sourceUnit, LengthUnit targetUnit) {
 		if(!Double.isFinite(value)) throw new IllegalArgumentException("value should be finite");
 		Length l=new Length(value,sourceUnit);
 		return l.convertTo(targetUnit);
@@ -25,43 +25,43 @@ public class QuantityMeasurementApp {
 		System.out.println(l1+" + "+l2+" = "+additionResult);
 	}
 	
-	public static void demonstrateTargetLengthAddition(Length l1, Length l2, Length.LengthUnit unit) {
+	public static void demonstrateTargetLengthAddition(Length l1, Length l2, LengthUnit unit) {
 		Length result=l1.add(l2, unit);
 		System.out.println("("+l1+" + "+l2+") "+unit+" = "+result);
 	}
 
 	public static void main(String[] args) {
 		
-		demonstrateLengthAddition(new Length(1.0,Length.LengthUnit.FEET),
-								  new Length(36.0,Length.LengthUnit.INCHES));
+		demonstrateLengthAddition(new Length(1.0,LengthUnit.FEET),
+								  new Length(36.0,LengthUnit.INCHES));
 		
-		demonstrateTargetLengthAddition(new Length(1.0,Length.LengthUnit.FEET),
-				  						new Length(36.0,Length.LengthUnit.INCHES),
-				  						Length.LengthUnit.YARDS);
+		demonstrateTargetLengthAddition(new Length(1.0,LengthUnit.FEET),
+				  						new Length(36.0,LengthUnit.INCHES),
+				  						LengthUnit.YARDS);
 		
 		System.out.print("Length coversion: ");
-		System.out.println(convert(1,Length.LengthUnit.FEET,Length.LengthUnit.INCHES)+
-									" "+Length.LengthUnit.INCHES);
+		System.out.println(convert(1,LengthUnit.FEET,LengthUnit.INCHES)+
+									" "+LengthUnit.INCHES);
 		
 		System.out.print("Comparison btw Feet & Inch: ");
-		demonstrateLengthComparison(new Length(1.0,Length.LengthUnit.FEET),
-									new Length(12.0,Length.LengthUnit.INCHES));
+		demonstrateLengthComparison(new Length(1.0,LengthUnit.FEET),
+									new Length(12.0,LengthUnit.INCHES));
 		
 		System.out.print("Comparison btw Yard & Inch: ");
-		demonstrateLengthComparison(new Length(1.0,Length.LengthUnit.YARDS),
-									new Length(36.0,Length.LengthUnit.INCHES));
+		demonstrateLengthComparison(new Length(1.0,LengthUnit.YARDS),
+									new Length(36.0,LengthUnit.INCHES));
 		
 		System.out.print("Comparison btw Centimeter & Inch: ");
-		demonstrateLengthComparison(new Length(100.0,Length.LengthUnit.CENTIMETERS),
-									new Length(39.3701,Length.LengthUnit.INCHES));
+		demonstrateLengthComparison(new Length(100.0,LengthUnit.CENTIMETERS),
+									new Length(39.3701,LengthUnit.INCHES));
 		
 		System.out.print("Comparison btw Feet & Yard: ");
-		demonstrateLengthComparison(new Length(3.0,Length.LengthUnit.FEET),
-									new Length(1.0,Length.LengthUnit.YARDS));
+		demonstrateLengthComparison(new Length(3.0,LengthUnit.FEET),
+									new Length(1.0,LengthUnit.YARDS));
 		
 		System.out.print("Comparison btw Centimeter & Feet: ");
-		demonstrateLengthComparison(new Length(30.48,Length.LengthUnit.CENTIMETERS),
-									new Length(1.0,Length.LengthUnit.FEET));
+		demonstrateLengthComparison(new Length(30.48,LengthUnit.CENTIMETERS),
+									new Length(1.0,LengthUnit.FEET));
 		
 	}
 

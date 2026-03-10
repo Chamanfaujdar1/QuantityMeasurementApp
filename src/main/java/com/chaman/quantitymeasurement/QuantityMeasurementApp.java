@@ -18,6 +18,18 @@ public class QuantityMeasurementApp {
 	public static <U extends IMeasurable> Quantity<U> demonstrateAddition(Quantity<U> q1, Quantity<U> q2, U targetUnit){
 		return q1.add(q2, targetUnit);
 	}
+	
+	public static <U extends IMeasurable> Quantity<U> demonstrateSubtraction(Quantity<U> q1, Quantity<U> q2, U targetUnit){
+		return q1.subtract(q2, targetUnit);
+	}
+	
+	public static <U extends IMeasurable> Quantity<U> demonstrateSubtraction(Quantity<U> q1, Quantity<U> q2){
+		return q1.subtract(q2);
+	}
+	
+	public static <U extends IMeasurable> double demonstrateDivision(Quantity<U> q1, Quantity<U> q2) {
+		return q1.divide(q2);
+	}
 
 	public static void main(String[] args) {
 		
@@ -46,6 +58,19 @@ public class QuantityMeasurementApp {
 		//Demonstration addition of two quantities and return the result in the target unit
 		System.out.println(demonstrateAddition(weightInGrams,weightInKilograms,WeightUnit.MILLIGRAM));
 		System.out.println(demonstrateAddition(volumeInML,volumeInL,VolumeUnit.GALLON));
+		
+		//Demonstration subtraction of two quantities and returns the result in unit of first quantity
+		System.out.println(demonstrateSubtraction(weightInGrams,weightInKilograms));
+		System.out.println(demonstrateAddition(volumeInML, volumeInL));
+		
+		//Demonstration subtraction of two quantities and returns the result in the target unit
+		System.out.println(demonstrateSubtraction(weightInGrams,weightInKilograms,WeightUnit.MILLIGRAM));
+		System.out.println(demonstrateSubtraction(volumeInML, volumeInL,VolumeUnit.GALLON));
+		
+		//Demonstration of division of two quantities
+		System.out.println(demonstrateDivision(weightInGrams,weightInKilograms));
+		System.out.println(demonstrateDivision(volumeInML,volumeInL));
+		
 	}
 
 }

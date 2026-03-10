@@ -1,6 +1,6 @@
 package com.chaman.quantitymeasurement;
 
-public enum LengthUnit{
+public enum LengthUnit implements IMeasurable{
 	FEET(12.0),
 	INCHES(1.0),
 	YARDS(36),
@@ -16,11 +16,11 @@ public enum LengthUnit{
 		return conversionFactor;
 	}
 	
-	public double toBase(double value) {
+	public double convertToBaseUnit(double value) {
 		return value * getConversionFactor(); 
 	}
 	
-	public double fromBase(double value) {
+	public double convertFromBaseUnit(double value) {
 		return value/getConversionFactor();
 	}
 }

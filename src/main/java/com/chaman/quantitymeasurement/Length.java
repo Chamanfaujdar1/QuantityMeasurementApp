@@ -6,7 +6,7 @@ public class Length {
 	private LengthUnit unit;
 	private static final double EPSILON = 0.0001;
 	
-	public Length(double value, LengthUnit unit) {
+	public Length(double value, LengthUnit unit) {	
 		if(!Double.isFinite(value)) throw new IllegalArgumentException("value should be finite");
 		if(unit==null) throw new IllegalArgumentException("Unit cannot be null");
 		this.value=value;

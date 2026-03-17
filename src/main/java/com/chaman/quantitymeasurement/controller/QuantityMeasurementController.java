@@ -1,68 +1,54 @@
 package com.chaman.quantitymeasurement.controller;
 
-import com.chaman.quantitymeasurement.dto.QuantityDTO;
-import com.chaman.quantitymeasurement.service.IQuantityMeasurementService;
+import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import com.chaman.quantitymeasurement.service.*;
+import com.chaman.quantitymeasurement.dto.*;
+import com.chaman.quantitymeasurement.entity.*;
+
+
+@RestController
+@RequestMapping("/api/v1/quantities")
 public class QuantityMeasurementController {
 
+    @Autowired
     private IQuantityMeasurementService service;
 
-    public QuantityMeasurementController(IQuantityMeasurementService service) {
-        this.service = service;
+    @PostMapping("/compare")
+    public QuantityMeasurementEntity compare(@RequestBody QuantityInputDTO input) {
+        return service.compare(input);
     }
 
-    // ADDITION
-    public void performAddition(QuantityDTO q1, QuantityDTO q2) {
-
-        QuantityDTO result = service.add(q1, q2);
-
-        System.out.println("Addition Result: " 
-                + result.getValue() + " " + result.getUnit());
+    @PostMapping("/convert")
+    public QuantityMeasurementEntity convert(@RequestBody QuantityInputDTO input) {
+        return service.convert(input);
     }
 
-    // SUBTRACTION
-    public void performSubtraction(QuantityDTO q1, QuantityDTO q2) {
-
-        QuantityDTO result = service.subtract(q1, q2);
-
-        System.out.println("Subtraction Result: "
-                + result.getValue() + " " + result.getUnit());
+    @PostMapping("/add")
+    public QuantityMeasurementEntity add(@RequestBody QuantityInputDTO input) {
+        return service.add(input);
+    }
+    
+    @PostMapping("/subtract")
+    public QuantityMeasurementEntity subtract(@RequestBody QuantityInputDTO input) {
+        return service.subtract(input);
     }
 
-    // DIVISION
-    public void performDivision(QuantityDTO q1, QuantityDTO q2) {
-
-        double result = service.divide(q1, q2);
-
-        System.out.println("Division Result: " + result);
+    @PostMapping("/divide")
+    public QuantityMeasurementEntity divide(@RequestBody QuantityInputDTO input) {
+        return service.divide(input);
     }
 
-    // COMPARISON
-    public void performComparison(QuantityDTO q1, QuantityDTO q2) {
-
-        boolean result = service.compare(q1, q2);
-
-        System.out.println("Are equal: " + result);
+    @GetMapping("/history/operation/{operation}")
+    public List<QuantityMeasurementEntity> getHistory(@PathVariable String operation) {
+        return service.getHistoryByOperation(operation);
     }
 
-    // CONVERSION
-    public void performConversion(QuantityDTO input, String targetUnit) {
-
-        QuantityDTO result = service.convert(input, targetUnit);
-
-        System.out.println("Converted Result: "
-                + result.getValue() + " " + result.getUnit());
+    @GetMapping("/count/{operation}")
+    public long getCount(@PathVariable String operation) {
+        return service.getOperationCount(operation);
     }
-
-    // DELETE ALL MEASUREMENTS
-    public void deleteAllMeasurements() {
-
-        service.deleteAllMeasurements();
-
-        System.out.println("All measurements deleted from database.");
-    }
-}
-
-public class QuantityMeasurementController {
-
 }

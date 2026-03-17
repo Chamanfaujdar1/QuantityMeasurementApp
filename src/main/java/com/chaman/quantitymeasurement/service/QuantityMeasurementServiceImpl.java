@@ -1,109 +1,216 @@
 package com.chaman.quantitymeasurement.service;
 
-import com.chaman.quantitymeasurement.dto.QuantityDTO;
+import org.springframework.stereotype.Service;
+
+import com.chaman.quantitymeasurement.dto.QuantityInputDTO;
 import com.chaman.quantitymeasurement.entity.QuantityMeasurementEntity;
-import com.chaman.quantitymeasurement.repository.IQuantityMeasurementRepository;
+import com.chaman.quantitymeasurement.repository.QuantityMeasurementRepository;
+import com.chaman.quantitymeasurement.units.*;
 
-public class QuantityMeasurementServiceImpl
-        implements IQuantityMeasurementService {
+import java.time.LocalDateTime;
+import java.util.List;
 
-    private IQuantityMeasurementRepository repository;
+@Service
+public class QuantityMeasurementServiceImpl implements IQuantityMeasurementService {
 
-    public QuantityMeasurementServiceImpl(IQuantityMeasurementRepository repository) {
+    private final QuantityMeasurementRepository repository;
+
+    public QuantityMeasurementServiceImpl(QuantityMeasurementRepository repository) {
         this.repository = repository;
     }
 
-    @Override
-    public QuantityDTO convert(QuantityDTO input, String targetUnit) {
+    // ---------------- COMMON METHOD ----------------
 
-        if (input == null)
-            throw new IllegalArgumentException("Input cannot be null");
+    private IMeasurable getUnit(String measurementType, String unit) {
+        unit = unit.toUpperCase();
 
-        return new QuantityDTO(input.getValue(), targetUnit, input.getMeasurementType());
+        return switch (measurementType.toUpperCase()) {
+            case "LENGTH" -> LengthUnit.valueOf(unit);
+            case "WEIGHT" -> WeightUnit.valueOf(unit);
+            case "VOLUME" -> VolumeUnit.valueOf(unit);
+            case "TEMPERATURE" -> TemperatureUnit.valueOf(unit);
+            default -> throw new RuntimeException("Invalid measurement type");
+        };
     }
 
+    // ---------------- COMPARE ----------------
+
     @Override
-    public boolean compare(QuantityDTO q1, QuantityDTO q2) {
+    public QuantityMeasurementEntity compare(QuantityInputDTO input) {
 
-        if (q1 == null || q2 == null)
-            throw new IllegalArgumentException("Quantities cannot be null");
+        QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
 
-        double value1 = q1.getValue();
-        double value2 = q2.getValue();
+        var q1 = input.getThisQuantityDTO();
+        var q2 = input.getThatQuantityDTO();
 
-        String unit1 = q1.getUnit();
-        String unit2 = q2.getUnit();
+        IMeasurable unit1 = getUnit(q1.getMeasurementType(), q1.getUnit());
+        IMeasurable unit2 = getUnit(q2.getMeasurementType(), q2.getUnit());
 
-        if (unit1.equals("FEET") && unit2.equals("INCHES")) {
-            value2 = value2 / 12;
+        double base1 = unit1.convertToBaseUnit(q1.getValue());
+        double base2 = unit2.convertToBaseUnit(q2.getValue());
+
+        boolean result = base1 == base2;
+
+        setCommonFields(entity, input);
+        entity.setOperation("COMPARE");
+        entity.setResultString(String.valueOf(result));
+        entity.setCreatedAt(LocalDateTime.now());
+
+        return repository.save(entity);
+    }
+
+    // ---------------- CONVERT ----------------
+
+    @Override
+    public QuantityMeasurementEntity convert(QuantityInputDTO input) {
+
+        QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
+
+        var q = input.getThisQuantityDTO();
+
+        IMeasurable unit = getUnit(q.getMeasurementType(), q.getUnit());
+
+        double base = unit.convertToBaseUnit(q.getValue());
+        double result = unit.convertFromBaseUnit(base);
+
+        entity.setThisValue(q.getValue());
+        entity.setThisUnit(q.getUnit());
+        entity.setThisMeasurementType(q.getMeasurementType());
+
+        entity.setResultValue(result);
+        entity.setResultUnit(q.getUnit());
+        entity.setOperation("CONVERT");
+        entity.setCreatedAt(LocalDateTime.now());
+
+        return repository.save(entity);
+    }
+
+    // ---------------- ADD ----------------
+
+    @Override
+    public QuantityMeasurementEntity add(QuantityInputDTO input) {
+
+        QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
+
+        var q1 = input.getThisQuantityDTO();
+        var q2 = input.getThatQuantityDTO();
+
+        IMeasurable unit1 = getUnit(q1.getMeasurementType(), q1.getUnit());
+        IMeasurable unit2 = getUnit(q2.getMeasurementType(), q2.getUnit());
+
+        if (!unit1.supportsArithmetic() || !unit2.supportsArithmetic()) {
+            throw new RuntimeException("Arithmetic not supported for this unit");
         }
 
-        if (unit1.equals("INCHES") && unit2.equals("FEET")) {
-            value1 = value1 / 12;
+        double base1 = unit1.convertToBaseUnit(q1.getValue());
+        double base2 = unit2.convertToBaseUnit(q2.getValue());
+
+        double resultBase = base1 + base2;
+
+        double finalResult = unit1.convertFromBaseUnit(resultBase);
+
+        setCommonFields(entity, input);
+        entity.setResultValue(finalResult);
+        entity.setResultUnit(q1.getUnit());
+        entity.setOperation("ADD");
+        entity.setCreatedAt(LocalDateTime.now());
+
+        return repository.save(entity);
+    }
+    
+    @Override
+    public QuantityMeasurementEntity subtract(QuantityInputDTO input) {
+
+        QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
+
+        var q1 = input.getThisQuantityDTO();
+        var q2 = input.getThatQuantityDTO();
+
+        IMeasurable unit1 = getUnit(q1.getMeasurementType(), q1.getUnit());
+        IMeasurable unit2 = getUnit(q2.getMeasurementType(), q2.getUnit());
+
+        if (!unit1.supportsArithmetic() || !unit2.supportsArithmetic()) {
+            throw new RuntimeException("Arithmetic not supported for this unit");
         }
 
-        return value1 == value2;
+        double base1 = unit1.convertToBaseUnit(q1.getValue());
+        double base2 = unit2.convertToBaseUnit(q2.getValue());
+
+        double resultBase = base1 - base2;
+
+        double finalResult = unit1.convertFromBaseUnit(resultBase);
+
+        setCommonFields(entity, input);
+        entity.setResultValue(finalResult);
+        entity.setResultUnit(q1.getUnit());
+        entity.setOperation("SUBTRACT");
+        entity.setCreatedAt(LocalDateTime.now());
+
+        return repository.save(entity);
+    }
+    
+    @Override
+    public QuantityMeasurementEntity divide(QuantityInputDTO input) {
+
+        QuantityMeasurementEntity entity = new QuantityMeasurementEntity();
+
+        var q1 = input.getThisQuantityDTO();
+        var q2 = input.getThatQuantityDTO();
+
+        IMeasurable unit1 = getUnit(q1.getMeasurementType(), q1.getUnit());
+        IMeasurable unit2 = getUnit(q2.getMeasurementType(), q2.getUnit());
+
+        if (!unit1.supportsArithmetic() || !unit2.supportsArithmetic()) {
+            throw new RuntimeException("Arithmetic not supported for this unit");
+        }
+
+        double base1 = unit1.convertToBaseUnit(q1.getValue());
+        double base2 = unit2.convertToBaseUnit(q2.getValue());
+
+        if (base2 == 0) {
+            throw new RuntimeException("Cannot divide by zero");
+        }
+
+        double result = base1 / base2;
+
+        setCommonFields(entity, input);
+        entity.setResultValue(result);
+        entity.setResultUnit("RATIO"); // division ka unit
+        entity.setOperation("DIVIDE");
+        entity.setCreatedAt(LocalDateTime.now());
+
+        return repository.save(entity);
     }
 
+    // ---------------- HISTORY ----------------
+
     @Override
-    public QuantityDTO add(QuantityDTO q1, QuantityDTO q2) {
-
-        double result = q1.getValue() + q2.getValue();
-
-        QuantityMeasurementEntity entity =
-                new QuantityMeasurementEntity(
-                        "ADD",
-                        q1.getValue(),
-                        q2.getValue(),
-                        result
-                );
-
-        repository.save(entity);
-
-        return new QuantityDTO(result, q1.getUnit(), q1.getMeasurementType());
+    public List<QuantityMeasurementEntity> getHistoryByOperation(String operation) {
+        return repository.findByOperation(operation.toUpperCase());
     }
 
+    // ---------------- COUNT ----------------
+
     @Override
-    public QuantityDTO subtract(QuantityDTO q1, QuantityDTO q2) {
-
-        double result = q1.getValue() - q2.getValue();
-
-        QuantityMeasurementEntity entity =
-                new QuantityMeasurementEntity(
-                        "SUBTRACT",
-                        q1.getValue(),
-                        q2.getValue(),
-                        result
-                );
-
-        repository.save(entity);
-
-        return new QuantityDTO(result, q1.getUnit(), q1.getMeasurementType());
+    public long getOperationCount(String operation) {
+        return repository.countByOperationAndErrorFalse(operation.toUpperCase());
     }
 
-    @Override
-    public double divide(QuantityDTO q1, QuantityDTO q2) {
+    // ---------------- COMMON SETTER ----------------
 
-        if (q2.getValue() == 0)
-            throw new ArithmeticException("Division by zero");
+    private void setCommonFields(QuantityMeasurementEntity entity, QuantityInputDTO input) {
 
-        double result = q1.getValue() / q2.getValue();
+        var q1 = input.getThisQuantityDTO();
+        var q2 = input.getThatQuantityDTO();
 
-        QuantityMeasurementEntity entity =
-                new QuantityMeasurementEntity(
-                        "DIVIDE",
-                        q1.getValue(),
-                        q2.getValue(),
-                        result
-                );
+        entity.setThisValue(q1.getValue());
+        entity.setThisUnit(q1.getUnit());
+        entity.setThisMeasurementType(q1.getMeasurementType());
 
-        repository.save(entity);
-
-        return result;
-    }
-
-    @Override
-    public void deleteAllMeasurements() {
-        repository.deleteAllMeasurements();
+        if (q2 != null) {
+            entity.setThatValue(q2.getValue());
+            entity.setThatUnit(q2.getUnit());
+            entity.setThatMeasurementType(q2.getMeasurementType());
+        }
     }
 }

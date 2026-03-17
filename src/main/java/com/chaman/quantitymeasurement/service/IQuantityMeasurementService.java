@@ -1,18 +1,22 @@
 package com.chaman.quantitymeasurement.service;
 
-import com.chaman.quantitymeasurement.dto.QuantityDTO;
+import com.chaman.quantitymeasurement.dto.QuantityInputDTO;
+import com.chaman.quantitymeasurement.entity.QuantityMeasurementEntity;
+import java.util.List;
 
 public interface IQuantityMeasurementService {
 
-    QuantityDTO convert(QuantityDTO input, String targetUnit);
+	QuantityMeasurementEntity convert(QuantityInputDTO input);
 
-    boolean compare(QuantityDTO q1, QuantityDTO q2);
+    QuantityMeasurementEntity add(QuantityInputDTO input);
+    
+    QuantityMeasurementEntity subtract(QuantityInputDTO input);
+    
+    QuantityMeasurementEntity divide(QuantityInputDTO input);
 
-    QuantityDTO add(QuantityDTO q1, QuantityDTO q2);
+    List<QuantityMeasurementEntity> getHistoryByOperation(String operation);
 
-    QuantityDTO subtract(QuantityDTO q1, QuantityDTO q2);
+    long getOperationCount(String operation);
 
-    double divide(QuantityDTO q1, QuantityDTO q2);
-
-    void deleteAllMeasurements();
+	QuantityMeasurementEntity compare(QuantityInputDTO input);
 }

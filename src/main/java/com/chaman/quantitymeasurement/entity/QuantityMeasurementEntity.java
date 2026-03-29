@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "quantity_measurements")
+@Table(name = "quantity")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

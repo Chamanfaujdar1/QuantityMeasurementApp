@@ -1,14 +1,17 @@
 package com.chaman.quantitymeasurement.service;
 
-import org.springframework.stereotype.Service;
-
 import com.chaman.quantitymeasurement.dto.QuantityInputDTO;
 import com.chaman.quantitymeasurement.entity.QuantityMeasurementEntity;
 import com.chaman.quantitymeasurement.repository.QuantityMeasurementRepository;
 import com.chaman.quantitymeasurement.units.*;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class QuantityMeasurementServiceImpl implements IQuantityMeasurementService {
@@ -19,19 +22,16 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
         this.repository = repository;
     }
 
-
     private IMeasurable getUnit(String measurementType, String unit) {
         unit = unit.toUpperCase();
-
         return switch (measurementType.toUpperCase()) {
-            case "LENGTH" -> LengthUnit.valueOf(unit);
-            case "WEIGHT" -> WeightUnit.valueOf(unit);
-            case "VOLUME" -> VolumeUnit.valueOf(unit);
+            case "LENGTH"      -> LengthUnit.valueOf(unit);
+            case "WEIGHT"      -> WeightUnit.valueOf(unit);
+            case "VOLUME"      -> VolumeUnit.valueOf(unit);
             case "TEMPERATURE" -> TemperatureUnit.valueOf(unit);
-            default -> throw new RuntimeException("Invalid measurement type");
+            default -> throw new RuntimeException("Invalid measurement type: " + measurementType);
         };
     }
-
 
     @Override
     public QuantityMeasurementEntity compare(QuantityInputDTO input) {
@@ -57,7 +57,6 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
         return repository.save(entity);
     }
 
-
     @Override
     public QuantityMeasurementEntity convert(QuantityInputDTO input) {
 
@@ -67,25 +66,22 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
         var q2 = input.getThatQuantityDTO();
 
         if (q1 == null || q2 == null) {
-            throw new RuntimeException("Invalid input");
+            throw new RuntimeException("Invalid input: both quantities are required");
         }
 
         IMeasurable fromUnit = getUnit(q1.getMeasurementType(), q1.getUnit());
-        IMeasurable toUnit = getUnit(q2.getMeasurementType(), q2.getUnit());
+        IMeasurable toUnit   = getUnit(q2.getMeasurementType(), q2.getUnit());
 
-        double base = fromUnit.convertToBaseUnit(q1.getValue());
+        double base  = fromUnit.convertToBaseUnit(q1.getValue());
         double result = toUnit.convertFromBaseUnit(base);
 
         entity.setThisValue(q1.getValue());
         entity.setThisUnit(q1.getUnit());
         entity.setThisMeasurementType(q1.getMeasurementType());
-
         entity.setThatUnit(q2.getUnit());
         entity.setThatMeasurementType(q2.getMeasurementType());
-
         entity.setResultValue(result);
         entity.setResultUnit(q2.getUnit());
-
         entity.setOperation("CONVERT");
         entity.setCreatedAt(LocalDateTime.now());
 
@@ -107,11 +103,8 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
             throw new RuntimeException("Arithmetic not supported for this unit");
         }
 
-        double base1 = unit1.convertToBaseUnit(q1.getValue());
-        double base2 = unit2.convertToBaseUnit(q2.getValue());
-
-        double resultBase = base1 + base2;
-
+        double resultBase  = unit1.convertToBaseUnit(q1.getValue())
+                + unit2.convertToBaseUnit(q2.getValue());
         double finalResult = unit1.convertFromBaseUnit(resultBase);
 
         setCommonFields(entity, input);
@@ -122,7 +115,7 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 
         return repository.save(entity);
     }
-    
+
     @Override
     public QuantityMeasurementEntity subtract(QuantityInputDTO input) {
 
@@ -138,11 +131,8 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
             throw new RuntimeException("Arithmetic not supported for this unit");
         }
 
-        double base1 = unit1.convertToBaseUnit(q1.getValue());
-        double base2 = unit2.convertToBaseUnit(q2.getValue());
-
-        double resultBase = base1 - base2;
-
+        double resultBase  = unit1.convertToBaseUnit(q1.getValue())
+                - unit2.convertToBaseUnit(q2.getValue());
         double finalResult = unit1.convertFromBaseUnit(resultBase);
 
         setCommonFields(entity, input);
@@ -153,7 +143,7 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
 
         return repository.save(entity);
     }
-    
+
     @Override
     public QuantityMeasurementEntity divide(QuantityInputDTO input) {
 
@@ -169,28 +159,30 @@ public class QuantityMeasurementServiceImpl implements IQuantityMeasurementServi
             throw new RuntimeException("Arithmetic not supported for this unit");
         }
 
-        double base1 = unit1.convertToBaseUnit(q1.getValue());
         double base2 = unit2.convertToBaseUnit(q2.getValue());
-
         if (base2 == 0) {
             throw new RuntimeException("Cannot divide by zero");
         }
 
-        double result = base1 / base2;
+        double result = unit1.convertToBaseUnit(q1.getValue()) / base2;
 
         setCommonFields(entity, input);
         entity.setResultValue(result);
-        entity.setResultUnit("RATIO"); // division ka unit
+        entity.setResultUnit("RATIO");
         entity.setOperation("DIVIDE");
         entity.setCreatedAt(LocalDateTime.now());
 
         return repository.save(entity);
     }
 
-
     @Override
-    public List<QuantityMeasurementEntity> getHistoryByOperation(String operation) {
-        return repository.findByOperation(operation.toUpperCase());
+    public Page<QuantityMeasurementEntity> getHistoryByOperation(
+            String operation, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        return repository.findByOperation(operation.toUpperCase(), pageable);
     }
 
     @Override

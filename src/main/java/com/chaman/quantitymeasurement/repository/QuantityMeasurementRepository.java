@@ -1,21 +1,15 @@
 package com.chaman.quantitymeasurement.repository;
 
-import java.util.List;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
 import com.chaman.quantitymeasurement.entity.QuantityMeasurementEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Repository
-public interface QuantityMeasurementRepository
-        extends JpaRepository<QuantityMeasurementEntity, Long> {
+public interface QuantityMeasurementRepository extends JpaRepository<QuantityMeasurementEntity, Long> {
 
-    List<QuantityMeasurementEntity> findByOperation(String operation);
+    // Paginated - used by getHistoryByOperation
+    Page<QuantityMeasurementEntity> findByOperation(String operation, Pageable pageable);
 
-    List<QuantityMeasurementEntity> findByThisMeasurementType(String measurementType);
-
+    // Count - used by getOperationCount
     long countByOperationAndErrorFalse(String operation);
-
-    List<QuantityMeasurementEntity> findByErrorTrue();
 }

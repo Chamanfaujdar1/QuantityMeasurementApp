@@ -6,6 +6,8 @@ import com.chaman.quantitymeasurement.security.CustomUserDetailsService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +19,8 @@ import java.io.IOException;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtFilter.class);
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -30,41 +34,51 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain chain)
             throws ServletException, IOException {
 
-        String path = request.getServletPath();
-        System.out.println("Request Path: " + path);
+        String path = request.getRequestURI();
 
-        if (path.equals("/api/v1/auth/login") || path.equals("/api/v1/auth/register")) {
+        if (path.contains("/api/v1/auth")
+                || path.contains("/oauth2")
+                || path.contains("/login")
+                || path.contains("/api/v1/oauth")) {
             chain.doFilter(request, response);
             return;
         }
 
         String header = request.getHeader("Authorization");
-        System.out.println("Header: " + header);
+
+        log.debug("Incoming request: {} {}", request.getMethod(), path);
 
         if (header != null && header.startsWith("Bearer ")) {
 
+            String token = header.substring(7);
+            String username = null;
+
             try {
-                String token = header.substring(7);
-                String username = jwtUtil.extractUsername(token);
-
-                System.out.println("Extracted Username: " + username);
-
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
-                    var userDetails = userService.loadUserByUsername(username);
-
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails, null, userDetails.getAuthorities());
-
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-
-                    System.out.println("Authentication SET");
-                }
-
+                username = jwtUtil.extractUsername(token);
             } catch (Exception e) {
-                System.out.println("JWT ERROR: " + e.getMessage());
+                log.warn("JWT validation failed for path {}: {}", path, e.getMessage());
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid or Expired Token");
+                return;
             }
+
+            log.debug("Authenticated user: {}", username);
+
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                var userDetails = userService.loadUserByUsername(username);
+
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities());
+
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
+        } else {
+            log.warn("Missing Authorization header for path: {}", path);
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Missing Token");
+            return;
         }
 
         chain.doFilter(request, response);

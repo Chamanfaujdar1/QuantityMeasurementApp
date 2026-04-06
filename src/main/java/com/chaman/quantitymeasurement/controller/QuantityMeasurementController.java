@@ -1,14 +1,13 @@
 package com.chaman.quantitymeasurement.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import com.chaman.quantitymeasurement.service.*;
 import com.chaman.quantitymeasurement.dto.*;
 import com.chaman.quantitymeasurement.entity.*;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/quantities")
@@ -18,37 +17,42 @@ public class QuantityMeasurementController {
     private IQuantityMeasurementService service;
 
     @PostMapping("/compare")
-    public QuantityMeasurementEntity compare(@RequestBody QuantityInputDTO input) {
-        return service.compare(input);
+    public ResponseEntity<QuantityMeasurementEntity> compare(@RequestBody QuantityInputDTO input) {
+        return ResponseEntity.ok(service.compare(input));
     }
 
     @PostMapping("/convert")
-    public QuantityMeasurementEntity convert(@RequestBody QuantityInputDTO input) {
-        return service.convert(input);
+    public ResponseEntity<QuantityMeasurementEntity> convert(@RequestBody QuantityInputDTO input) {
+        return ResponseEntity.ok(service.convert(input));
     }
 
     @PostMapping("/add")
-    public QuantityMeasurementEntity add(@RequestBody QuantityInputDTO input) {
-        return service.add(input);
+    public ResponseEntity<QuantityMeasurementEntity> add(@RequestBody QuantityInputDTO input) {
+        return ResponseEntity.ok(service.add(input));
     }
-    
+
     @PostMapping("/subtract")
-    public QuantityMeasurementEntity subtract(@RequestBody QuantityInputDTO input) {
-        return service.subtract(input);
+    public ResponseEntity<QuantityMeasurementEntity> subtract(@RequestBody QuantityInputDTO input) {
+        return ResponseEntity.ok(service.subtract(input));
     }
 
     @PostMapping("/divide")
-    public QuantityMeasurementEntity divide(@RequestBody QuantityInputDTO input) {
-        return service.divide(input);
+    public ResponseEntity<QuantityMeasurementEntity> divide(@RequestBody QuantityInputDTO input) {
+        return ResponseEntity.ok(service.divide(input));
     }
 
+    // Paginated history - GET /api/v1/quantities/history/operation/ADD?page=0&size=10
     @GetMapping("/history/operation/{operation}")
-    public List<QuantityMeasurementEntity> getHistory(@PathVariable String operation) {
-        return service.getHistoryByOperation(operation);
+    public ResponseEntity<Page<QuantityMeasurementEntity>> getHistory(
+            @PathVariable String operation,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(service.getHistoryByOperation(operation, page, size));
     }
 
     @GetMapping("/count/{operation}")
-    public long getCount(@PathVariable String operation) {
-        return service.getOperationCount(operation);
+    public ResponseEntity<Long> getCount(@PathVariable String operation) {
+        return ResponseEntity.ok(service.getOperationCount(operation));
     }
 }

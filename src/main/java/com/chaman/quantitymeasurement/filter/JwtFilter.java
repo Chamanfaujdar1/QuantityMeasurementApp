@@ -35,33 +35,36 @@ public class JwtFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
+        String header = request.getHeader("Authorization");
+
+        log.info(">>> Incoming Request: {} {}", request.getMethod(), path);
+        log.info(">>> Authorization Header: {}", header != null ? "present (starts with Bearer: " + header.startsWith("Bearer ") + ")" : "MISSING");
 
         if (path.contains("/api/v1/auth")
                 || path.contains("/oauth2")
                 || path.contains("/login")
-                || path.contains("/api/v1/oauth")) {
+                || path.contains("/api/v1/oauth")
+                || path.contains("/swagger-ui")
+                || path.contains("/v3/api-docs")) {
+            log.info(">>> Bypassing JWT filter for path: {}", path);
             chain.doFilter(request, response);
             return;
         }
-
-        String header = request.getHeader("Authorization");
-
-        log.debug("Incoming request: {} {}", request.getMethod(), path);
 
         if (header != null && header.startsWith("Bearer ")) {
 
             String token = header.substring(7);
             String username = null;
+            System.out.println("Token: " + token);
 
             try {
                 username = jwtUtil.extractUsername(token);
+                log.info(">>> Extracted username from token: {}", username);
             } catch (Exception e) {
-                log.warn("JWT validation failed for path {}: {}", path, e.getMessage());
+                log.warn(">>> JWT validation failed for path {}: {}", path, e.getMessage());
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid or Expired Token");
                 return;
             }
-
-            log.debug("Authenticated user: {}", username);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
@@ -74,9 +77,10 @@ public class JwtFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                log.info(">>> Authentication set for user: {}", username);
             }
         } else {
-            log.warn("Missing Authorization header for path: {}", path);
+            log.warn(">>> Missing or invalid Authorization header for path: {}", path);
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Missing Token");
             return;
         }

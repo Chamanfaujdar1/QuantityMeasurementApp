@@ -41,7 +41,6 @@ public class QuantityMeasurementController {
         return ResponseEntity.ok(service.divide(input));
     }
 
-    // Paginated history - GET /api/v1/quantities/history/operation/ADD?page=0&size=10
     @GetMapping("/history/operation/{operation}")
     public ResponseEntity<Page<QuantityMeasurementEntity>> getHistory(
             @PathVariable String operation,

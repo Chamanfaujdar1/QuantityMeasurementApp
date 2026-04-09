@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Service
-@Transactional  // Apply to ALL methods in this service
+@Transactional
 public class RefreshTokenService {
 
     private final long refreshTokenDurationMs = 7 * 24 * 60 * 60 * 1000;
@@ -28,9 +28,8 @@ public class RefreshTokenService {
         User user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
-        // Delete old refresh token if exists
         repo.deleteByUserId(user.getId());
-        repo.flush(); // ensure delete is committed before insert
+        repo.flush();
 
         RefreshToken token = new RefreshToken();
         token.setUser(user);
@@ -52,7 +51,6 @@ public class RefreshTokenService {
 
     public void logoutByUsername(String username) {
 
-        // Gracefully handles both logout and delete-user flows
         userRepo.findByUsername(username).ifPresent(user ->
                 repo.deleteByUserId(user.getId())
         );

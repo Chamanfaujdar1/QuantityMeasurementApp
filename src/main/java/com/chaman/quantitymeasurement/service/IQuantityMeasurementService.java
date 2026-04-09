@@ -18,7 +18,6 @@ public interface IQuantityMeasurementService {
 
     QuantityMeasurementEntity compare(QuantityInputDTO input);
 
-    // Paginated version
     Page<QuantityMeasurementEntity> getHistoryByOperation(String operation, int page, int size);
 
     long getOperationCount(String operation);

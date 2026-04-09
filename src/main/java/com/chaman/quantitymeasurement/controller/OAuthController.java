@@ -33,7 +33,6 @@ public class OAuthController {
 
         String email = user.getAttribute("email");
 
-        // Save user if first time login with Google
         if (userRepo.findByUsername(email).isEmpty()) {
             User newUser = new User();
             newUser.setUsername(email);
@@ -46,8 +45,6 @@ public class OAuthController {
         String accessToken = jwtUtil.generateToken(email);
         var refreshToken = refreshTokenService.createRefreshToken(email);
 
-        // Redirect to Angular frontend with tokens as URL params
-        // Angular will read these and store in localStorage
         String redirectUrl = String.format(
                 "http://localhost:4200/auth/callback?accessToken=%s&refreshToken=%s",
                 accessToken,

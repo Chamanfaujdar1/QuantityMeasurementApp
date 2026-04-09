@@ -5,8 +5,8 @@ import lombok.Data;
 @Data
 public class QuantityInputDTO {
 
-    private QuantityDTO thisQuantityDTO;
-    private QuantityDTO thatQuantityDTO;
+	private QuantityDTO thisQuantityDTO;
+	private QuantityDTO thatQuantityDTO;
 	public QuantityDTO getThisQuantityDTO() {
 		return thisQuantityDTO;
 	}

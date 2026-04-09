@@ -48,11 +48,12 @@ public class SecurityConfig {
                                 "/h2-console/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/api/v1/quantities/**"
                         ).permitAll()
 
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/quantities/**").hasAnyRole("USER", "ADMIN")
+//                        .requestMatchers("/api/v1/quantities/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/v1/user/**").hasAnyRole("USER", "ADMIN")
 
                         .anyRequest().authenticated()

@@ -31,7 +31,6 @@ public class AdminController {
     @Autowired
     private QuantityMeasurementRepository quantityRepo;
 
-    // 1. Get all users
     @GetMapping("/users")
     public ResponseEntity<List<UserProfileResponse>> getAllUsers() {
 
@@ -47,7 +46,6 @@ public class AdminController {
         return ResponseEntity.ok(users);
     }
 
-    // 2. Promote user to ADMIN
     @PutMapping("/users/{username}/promote")
     public ResponseEntity<String> promoteToAdmin(@PathVariable String username) {
 
@@ -64,14 +62,12 @@ public class AdminController {
         return ResponseEntity.ok("User '" + username + "' promoted to ADMIN successfully");
     }
 
-    // 3. Delete a user
     @DeleteMapping("/users/{username}")
     public ResponseEntity<String> deleteUser(@PathVariable String username) {
 
         User user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
-        // Delete refresh token first (FK constraint)
         refreshTokenService.logoutByUsername(username);
 
         userRepo.delete(user);
@@ -79,7 +75,6 @@ public class AdminController {
         return ResponseEntity.ok("User '" + username + "' deleted successfully");
     }
 
-    // 4. Get all operation history across all users (paginated)
     @GetMapping("/history")
     public ResponseEntity<Page<QuantityMeasurementEntity>> getAllHistory(
             @RequestParam(defaultValue = "0") int page,

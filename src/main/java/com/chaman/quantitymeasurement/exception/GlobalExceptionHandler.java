@@ -16,7 +16,6 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Validation errors (@Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationErrors(
             MethodArgumentNotValidException ex) {
@@ -29,25 +28,21 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, "Validation failed", fieldErrors);
     }
 
-    // Wrong username or password
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Map<String, Object>> handleBadCredentials(BadCredentialsException ex) {
         return buildResponse(HttpStatus.UNAUTHORIZED, "Invalid username or password", null);
     }
 
-    // JWT expired
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<Map<String, Object>> handleExpiredJwt(ExpiredJwtException ex) {
         return buildResponse(HttpStatus.UNAUTHORIZED, "Token has expired", null);
     }
 
-    // JWT invalid
     @ExceptionHandler(JwtException.class)
     public ResponseEntity<Map<String, Object>> handleJwtException(JwtException ex) {
         return buildResponse(HttpStatus.UNAUTHORIZED, "Invalid token", null);
     }
 
-    // Custom app exceptions
     @ExceptionHandler(QuantityMeasurementException.class)
     public ResponseEntity<Map<String, Object>> handleQuantityException(
             QuantityMeasurementException ex) {
@@ -59,13 +54,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), null);
     }
 
-    // User not found / token not found
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
     }
 
-    // Fallback for everything else
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR,
